@@ -1,9 +1,6 @@
 name: site
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -12,46 +9,15 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  site:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout site source (XenoAtom.Terminal.UI)
-        uses: actions/checkout@v5
-        with:
-          repository: XenoAtom/XenoAtom.Terminal.UI
-          submodules: recursive
-          fetch-depth: 0
-          path: ui
-
-      - name: Install .NET 9.0
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: "9.0.x"
-
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v5
-
-      - name: Build web site
-        working-directory: ui/site
-        run: |
-          dotnet tool install --global lunet --version "0.8.*"
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
-          lunet build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ui/site/.lunet/build/www
-
-  deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
+      url: ${{ steps.lunet.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - id: lunet
+        name: Build and deploy Lunet site
+        uses: lunet-io/actions/lunet-build@v1
+        with:
+          repository: XenoAtom/XenoAtom.Terminal.UI
+          site_path: site
